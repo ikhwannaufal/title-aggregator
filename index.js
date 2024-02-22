@@ -1,7 +1,16 @@
+import express from "express";
 import puppeteer from "puppeteer";
-import fs from "fs/promises"
 
-const getTitles = async () => {
+const app = express();
+const port = 4000;
+
+app.get("/", async (req, res) => {
+  const postsItems = await fetchTitles();
+  const htmlContent = generateHTML(postsItems);
+  res.send(htmlContent);
+});
+
+const fetchTitles = async () => {
   const browser = await puppeteer.launch({headless: true});
   const page = await browser.newPage();
 
@@ -31,13 +40,11 @@ const getTitles = async () => {
     return postsItems;
   });
 
-  // await browser.close();
-
-  // Writes the titles to an HTML file
-  await writeTitlesToHTML(postsItems);
+  await browser.close();
+  return postsItems;
 };
 
-const writeTitlesToHTML = async (postsItems) => {
+const generateHTML = (postsItems) => {
   let htmlContent = `
   <!DOCTYPE html>
   <html lang="en">
@@ -77,9 +84,9 @@ const writeTitlesToHTML = async (postsItems) => {
   </html>
   `;
 
-  
-  // Create html file to display news titles
-  await fs.writeFile('titles.html', htmlContent); 
+  return htmlContent
 };
 
-getTitles();
+app.listen(port, () => {
+  console.log(`Server is running at http://localhost:${port}`)
+})
